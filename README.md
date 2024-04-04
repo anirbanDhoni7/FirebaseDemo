@@ -2,6 +2,17 @@
 User ID : +91 5656565656
 Password : 123456
 
+# Set up Project 
+1. npm install 
+2. npx react-native run-android
+
+# Make APK 
+1. cd android && ./gradlew assembleDebug (DEBUG APK)
+3. cd android && ./gradlew assembleRelease (DEBUG APK)
+
+# Make Bundle 
+cd android && ./gradlew bundleRelease
+
 # Solution of "Android build failed: Can't determine type for tag '<macro name="m3_comp_assist_chip_container_shape">?attr/shapeAppearanceCornerSmall</macro>'"
 
 go to node_modules/react-native-screens/android/build.gradle file and
