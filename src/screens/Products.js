@@ -3,13 +3,15 @@ import { Text, View, SafeAreaView, StatusBar, Platform, FlatList, TouchableOpaci
 import styles from './Styles';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { getMyStringValue, setStringValue } from '../components/AsyncStorage';
+// import { getMyStringValue, setStringValue } from '../components/AsyncStorage';
 import CustomButton from '../components/CustomButton';
 import { firebase } from '@react-native-firebase/auth';
 import Firebase from '@react-native-firebase/app'
 import { CommonActions } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
+import { addProduct, deleteProduct, updateProduct } from '../redux/action';
 
-export default class Products extends React.Component {
+class Products extends React.Component {
 
   constructor(props) {
 
@@ -17,7 +19,7 @@ export default class Products extends React.Component {
 
     this.state = {
       willAddNote: false,
-      noteText: "",
+      newProduct: "",
       isEmpty: false,
       products: []
     }
@@ -25,37 +27,11 @@ export default class Products extends React.Component {
 
   componentDidMount = async() => {
 
-    if(await getMyStringValue('products') !== null) {
-      this.setState({ products: JSON.parse(await getMyStringValue("products")) }, () => 
+    this.setState({ products: this.props.products }, () => 
       console.log(this.state.products));
-    }
   }
 
-  _addProduct = async () => {
-
-    if(this.state.noteText.trim() === "") {
-      this.setState({ isEmpty: true });
-      this.refDesc.focus();
-      return;
-    }
-
-    let products = this.state.products.length==0 ? [] : this.state.products;
-    products.push({
-      id: Math.random() + this.state.products.length.toString(), 
-      editable: false, 
-      text: this.state.noteText.trim(), 
-      show: false
-    });
-    this.setState({ 
-      products: products, 
-      addNoteTouchable: false, 
-      noteText: "", 
-      isEmpty: false 
-    }, async () => await setStringValue("products", this.state.products));
-    products = [];
-  }
-
-  _updateProduct = async item => {
+  _updateProduct = async (item) => {
     if (!item.editable) {
       let products = this.state.products;
       this.state.products.map(element => {
@@ -64,40 +40,27 @@ export default class Products extends React.Component {
           element.text = item.text;
         }
       });
-      this.setState({ products: products, noteText: item.text });
-      await setStringValue("products", this.state.products);
+      this.setState({ products: products, newProduct: item.text });
+      // await setStringValue("products", this.state.products);
     } else {
-      let products = this.state.products;
-      this.state.products.map(element => {
-        if(element.id === item.id) {
-          element.text = this.state.noteText.trim();
-          element.show=false;
-          element.editable = false;
-        }
-      });
-      this.setState({ products: products, noteText: "" });
-      await setStringValue("products", this.state.products);
+      await this.props.dispatch(updateProduct({
+        item,
+        newProduct: this.state.newProduct,
+        endEditing: () => this.setState({ newProduct: "" })
+      }))
+      // await setStringValue("products", this.state.products);
     }
   }
 
-  _showSpecificProduct = async item => {
-    let products = this.state.products;
+  _showSpecificProduct = async (item) => {
+    let products = this.props.products;
     this.state.products.map(element => {
       if(element.id === item.id) {
         element.show = !element.show;
       }
-    });
+    })
     this.setState({ products: products });
-    await setStringValue("products", this.state.products);
-  }
-
-  _deleteProduct = async (item) => {
-
-    let products = this.state.products;
-    products.splice(this.state.products.indexOf(item), 1);
-    this.setState({ products: products });
-    products = [];
-    await setStringValue("products", this.state.products);
+    // await setStringValue("products", products);
   }
 
   render() {
@@ -123,15 +86,31 @@ export default class Products extends React.Component {
             <View style={styles.addNoteViewStyle}>
               <TextInput
               style={[styles.addNoteTextInputStyle, 
-              this.state.isEmpty && this.state.noteText.trim()==="" &&{borderColor: '#ff0000'}]}
+                    this.state.isEmpty && this.state.newProduct.trim() === "" && { borderColor: '#ff0000' }]}
               ref={ref => this.refDesc = ref}
               multiline
-              onChangeText={text => this.setState({noteText: text})}
+                  onChangeText={text => this.setState({ newProduct: text })}
               />
 
               <View style={{height: 5}}/>
               <TouchableOpacity 
-              onPress={() => this._addProduct()}
+                  onPress={async () => {
+                    await this.props.dispatch(addProduct({
+                      isTextFieldEmpty: this.state.newProduct.trim() === "",
+                      clearTextField: () => {
+                        this.setState({ isEmpty: true });
+                        this.refDesc.focus();
+                        return;
+                      },
+                      newProduct: this.state.newProduct,
+                      endEditing: () =>
+                        this.setState({
+                          addNoteTouchable: false,
+                          newProduct: "",
+                          isEmpty: false
+                        })
+                    }));
+                  }}
               style={[styles.addNoteTouchable, {margin: 0, backgroundColor: '#1b1b1b'}]}>
                 <Text style={[styles.eachNoteText, {color: '#fff'}]}>Add Product</Text>
               </TouchableOpacity>
@@ -142,7 +121,7 @@ export default class Products extends React.Component {
             this.state.products.length != 0 &&
             <View style={{padding: 15}}>
               <FlatList
-              data={this.state.products}
+                  data={this.state.products}
               extraData={this.state}
               showsVerticalScrollIndicator={false}
               ItemSeparatorComponent={() => {return <View style={{height: 10}}/>}}
@@ -151,9 +130,9 @@ export default class Products extends React.Component {
               renderItem={({item, index}) => (
                 <View key={item.id}>
                   <TouchableOpacity 
-                  onPress={() => this._showSpecificProduct(item)}
+                    onPress={() => this._showSpecificProduct(item, item.id)}
                   style={styles.eachNoteView}
-                  key={index}>
+                    key={item.id}>
                     <Text 
                     numberOfLines={1}
                     ellipsizeMode="tail"
@@ -172,12 +151,12 @@ export default class Products extends React.Component {
                         defaultValue={item.text}
                         editable={item.editable}
                         multiline
-                        onChangeText={text => this.setState({ noteText: text })}
+                            onChangeText={text => this.setState({ newProduct: text })}
                         style={styles.addNoteTextInputStyle}/>
                       </View>
                       <View style={styles.eachItemIconRowView}>
                         <TouchableOpacity
-                        onPress={() => this._updateProduct(item)}>
+                            onPress={() => this._updateProduct(item)}>
                           {!item.editable ?
                           <Ionicons
                           name={Platform.OS==='android' ? 'md-create' : 'ios-create'}
@@ -189,7 +168,18 @@ export default class Products extends React.Component {
                           }
                         </TouchableOpacity>
                         <TouchableOpacity 
-                        onPress={() => this._deleteProduct(item)}
+                            onPress={async () => {
+                              await this.props.dispatch(deleteProduct({
+                                item,
+                                endEditing: () =>
+                                  this.setState({
+                                    addNoteTouchable: false,
+                                    newProduct: "",
+                                    isEmpty: false
+                                  })
+                              }));
+                              // this._addProduct()
+                            }}
                         style={{paddingLeft: 10}}>
                           <Ionicons
                           name={Platform.OS==='android' ? 'md-trash' : 'ios-trash'}
@@ -212,7 +202,7 @@ export default class Products extends React.Component {
             style={{width: '95%'}}
             borderRadius={10}
             onPress={() => {
-              setStringValue('loginStatus', {login: 0})
+              // setStringValue('loginStatus', {login: 0})
               this.props.navigation.dispatch(
                 CommonActions.reset({
                   index: 1,
@@ -236,4 +226,11 @@ export default class Products extends React.Component {
       </SafeAreaView>
     );
   }
+}
+
+export default props => {
+  const dispatch = useDispatch();
+  const products = useSelector(state => state.products);
+  console.log('products', products);
+  return <Products {...props} dispatch={dispatch} products={products} />
 }

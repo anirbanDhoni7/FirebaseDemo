@@ -18,6 +18,8 @@ import { getMyStringValue, setStringValue } from './src/components/AsyncStorage'
 import WebViewComponent from './src/components/WebViewComponent';
 import Products from './src/screens/Products';
 import Firebase from '@react-native-firebase/app';
+import { Provider } from 'react-redux';
+import { store } from './src/redux/store';
 
 const Stack = createStackNavigator();
 
@@ -40,7 +42,7 @@ export default class App extends React.Component {
       // StatusBar.setHidden(false, 'slide');
     }, 3000);
   }
-  render = () => (
+  render = () =>
     this.state.showSplash ?
       <>
         <StatusBar backgroundColor="#0095ba" />
@@ -64,26 +66,27 @@ export default class App extends React.Component {
           />
         </ImageBackground>
       </>
-      : 
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName={this.state.isLoggedIn ? "Products" : "Home"}>
-        <Stack.Screen
-          name="Home"
-          component={Home}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Products"
-          component={Products}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="WebViewComponent"
-          component={WebViewComponent}
-          options={{ headerShown: false }}
-        />
+      :
+      <Provider store={store}>
+        <NavigationContainer>
+          <Stack.Navigator initialRouteName={this.state.isLoggedIn ? "Products" : "Home"}>
+            <Stack.Screen
+              name="Home"
+              component={Home}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="Products"
+              component={Products}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="WebViewComponent"
+              component={WebViewComponent}
+              options={{ headerShown: false }}
+            />
 
-      </Stack.Navigator>
-    </NavigationContainer>
-  );
+          </Stack.Navigator>
+        </NavigationContainer>
+      </Provider>
 }
