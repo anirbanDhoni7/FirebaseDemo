@@ -1,5 +1,5 @@
 import { NavigationContainer } from '@react-navigation/native';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import {
   ActivityIndicator,
@@ -12,64 +12,121 @@ import {
   View,
   ImageBackground,
 } from 'react-native';
-import Home from './src/screens/Home';
 import SplashScreen from 'react-native-splash-screen';
-import { getMyStringValue, setStringValue } from './src/components/AsyncStorage';
+import { getMyStringValue } from './src/components/AsyncStorage';
+import Login from './src/screens/login/Login';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import Home from './src/screens/home/Home';
+import Profile from './src/screens/profile/Profile';
+import Settings from './src/screens/settings/Settings';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { appTheme } from './src/screens/login/Styles';
+import { ASYNCSTORAGE_PARAMETERS } from './src/components/Constants';
 
 const Stack = createStackNavigator();
+const BottomTab = createBottomTabNavigator();
 
-export default class App extends React.Component {
-  state = {
-    content: [],
-    isLoading: false,
-    showSplash: true,
-    isLoggedIn: false
-  };
-  async componentDidMount() {
-    SplashScreen.hide();
-    getMyStringValue('loginStatus').then(r => {
-      console.log(r);
-      let isLoggedIn = JSON.parse(r).login;
-      this.setState({isLoggedIn: isLoggedIn == 1});
+const HomeTabs = () => (
+  <BottomTab.Navigator
+    initialRouteName='Home'
+    tabBarOptions={{
+      activeTintColor: appTheme,
+      inactiveTintColor: '#808080',
+      labelStyle: {
+        fontSize: 15
+      },
+      labelPosition: 'beside-icon',
+      style: {
+        paddingHorizontal: 20,
+        alignItems: 'center',
+        justifyContent: 'center'
+      }
+    }}
+  >
+    <BottomTab.Screen name="Home" component={Home}
+      options={{
+        tabBarBadgeStyle: { flex: 1 },
+        tabBarLabel: "DASHBOARD",
+        tabBarIcon: ({ color, size }) => <Ionicons name="home" color={color} size={size} />,
+      }} />
+    <BottomTab.Screen name="Profile" component={Profile} options={{
+      tabBarLabel: "PROFILE",
+      tabBarBadgeStyle: { flex: 1 },
+      tabBarIcon: ({ color, size }) => <Ionicons name="person" color={color} size={size} />,
+    }} />
+    <BottomTab.Screen name="Settings" component={Settings} options={{
+      tabBarLabel: "SETTINGS",
+      tabBarBadgeStyle: { flex: 1 },
+      tabBarIcon: ({ color, size }) => <Ionicons name="settings" color={color} size={size} />,
+    }} />
+  </BottomTab.Navigator>
+)
+
+const App = props => {
+  const [showSplash, setShowSplash] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [initialRoute, setInitialRoute] = useState('');
+  useEffect(() => {
+    // SplashScreen.hide();
+    getMyStringValue(ASYNCSTORAGE_PARAMETERS.LOGIN_STATUS).then(event => {
+      if (event == null) {
+        setInitialRoute('Login')
+      } else {
+        setInitialRoute('Home')
+      }
     })
     setTimeout(() => {
-      this.setState({ showSplash: false })
-      // StatusBar.setHidden(false, 'slide');
+      setShowSplash(false);
     }, 3000);
-  }
-  render = () =>
-    this.state.showSplash ?
+  }, []);
+
+  return (
+    showSplash ?
       <>
         <StatusBar backgroundColor="#0095ba" />
-        <ImageBackground
-          source={require('./assets/india.png')}
-          resizeMode='stretch'
+        <Image
+          source={require('./assets/rn-logo.png')}
           style={{
             flex: 1,
             width: Dimensions.get('window').width,
-            height: Dimensions.get('window').height,
+            height: (16 / 9) * Dimensions.get('window').width,
+            resizeMode: 'repeat'
           }}
-        >
-          <Image
-            source={require('./android/app/src/main/res/drawable/launch_screen.jpg')}
-            style={{
-              flex: 1,
-              width: Dimensions.get('window').width,
-              height: (16 / 9) * Dimensions.get('window').width,
-              resizeMode: 'contain',
-            }}
-          />
-        </ImageBackground>
+        />
       </>
       :
       <NavigationContainer>
-        <Stack.Navigator initialRouteName={this.state.isLoggedIn ? "Products" : "Home"}>
-          <Stack.Screen
-            name="Home"
-            component={Home}
-            options={{ headerShown: false }}
-          />
-
-        </Stack.Navigator>
+        <Stack.Navigator initialRouteName={initialRoute}>
+          {
+            (initialRoute == 'Home' || initialRoute == '') ?
+              <>
+                <Stack.Screen
+                  name="Home"
+                  component={HomeTabs}
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="Login"
+                  component={Login}
+                  options={{ headerShown: false }}
+                />
+              </> :
+              <>
+                <Stack.Screen
+                  name="Login"
+                  component={Login}
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="Home"
+                  component={HomeTabs}
+                  options={{ headerShown: false }}
+                />
+              </>
+          }
+        </Stack.Navigator> 
       </NavigationContainer>
+  )
 }
+
+export default App;

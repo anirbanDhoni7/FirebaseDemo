@@ -19,3 +19,13 @@ export const setStringValue = async (key, value) => {
 
   console.log('Done.');
 };
+
+export const removeStringValue = async (key, value) => {
+  try {
+    await AsyncStorage.removeItem(key);
+  } catch (e) {
+    // save error
+  }
+
+  console.log('Done.');
+};
