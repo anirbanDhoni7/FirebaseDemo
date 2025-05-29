@@ -164,10 +164,10 @@ android {
     }
     signingConfigs {
         release {
-            storeFile file('khelo_auction.keystore')
-            storePassword 'khelo_auction'
-            keyAlias 'khelo_auction'
-            keyPassword 'khelo_auction'
+            storeFile file('RNAssignment.keystore')
+            storePassword 'RNAssignment'
+            keyAlias 'RNAssignment'
+            keyPassword 'RNAssignment'
         }
         debug {
             storeFile file('debug.keystore')
