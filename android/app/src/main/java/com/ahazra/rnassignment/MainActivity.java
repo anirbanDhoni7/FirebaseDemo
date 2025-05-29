@@ -1,4 +1,4 @@
-package com.ahazra.firebasedemo;
+package com.ahazra.rnassignment;
 
 import com.facebook.react.ReactActivity;
 import org.devio.rn.splashscreen.SplashScreen;
@@ -24,6 +24,6 @@ public class MainActivity extends ReactActivity {
   
   @Override
   protected String getMainComponentName() {
-    return "FirebaseDemo";
+    return "RNAssignment";
   }
 }

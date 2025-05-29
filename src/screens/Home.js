@@ -14,8 +14,6 @@ import Header from '../components/Header';
 import HeadingTitleComponent from '../components/HeadingTitleComponent';
 import CustomTextInput from '../components/CustomTextInput';
 import CustomButton from '../components/CustomButton';
-import {firebase} from '@react-native-firebase/auth';
-import Firebase from '@react-native-firebase/app';
 import CountryPicker from 'react-native-country-picker-modal';
 import { CommonActions } from '@react-navigation/native';
 import { setStringValue } from '../components/AsyncStorage';
@@ -164,78 +162,7 @@ export default class Home extends React.Component {
           isLoading={this.state.isLoading}
           style={{width: '95%'}}
           borderRadius={10}
-          onPress={
-            Object.keys(this.state.otpSendResult).length > 0 ? () => {
-              if(this.state.otp == '') {
-                alert('Please enter OTP');
-                return;
-              }
-              const {otpSendResult} = this.state;
-              this.setState({
-                isLoading: true
-              })
-              otpSendResult
-              .confirm(this.state.otp)
-              .then(async user => {
-                  console.log('Response => ', user);
-                  setStringValue('loginStatus', {login: 1}); 
-                  this.setState({
-                    isLoading: false
-                  })
-                  this.props.navigation.dispatch(
-                    CommonActions.reset({
-                      index: 1,
-                      routes: [
-                        { name: 'Products' },
-                      ],
-                    })
-                  );
-              })
-              .catch(error => {
-                this.setState({
-                  isLoading: false
-                })
-                alert(String(error));
-              })
-            }
-            : async () => {
-              if(this.state.mobile == '') {
-                alert('Please enter mobile number');
-                return;
-              }
-              this.setState({
-                isLoading: true
-              })
-            Firebase.initializeApp({
-              apiKey: "AIzaSyDWOWcBtJOnih2RdeKCDnsVuNYupnpNPKY",
-              appId: "1:409863539206:android:d3f71cca7c66466b641187",
-              authDomain: "fir-demo-4ef80.firebaseapp.com",
-              databaseURL: "https://fir-demo-4ef80.firebaseio.com",
-              projectId: "fir-demo-4ef80",
-              storageBucket: "fir-demo-4ef80.appspot.com",
-              messagingSenderId: "409863539206"
-            })
-            
-            firebase.auth(Firebase.apps.find(item =>item._name == '_phoneAuth_'))
-            .signInWithPhoneNumber("+" + this.state.selectedCountry.callingCode[0] + this.state.mobile)
-            .then(confirmation => {
-              console.log(confirmation);
-              this.setState({
-                isLoading: false
-              })
-              this.setState({
-                otpSendResult: confirmation
-              })
-
-            })
-            .catch(error => {
-                console.log("Error => ", error)
-                this.setState({
-                  isLoading: false
-                })
-                alert(String(error));
-            })
-          }}
+          onPress={() => undefined}
         />
         <View style={{height: 100}} />
       </ScrollView>

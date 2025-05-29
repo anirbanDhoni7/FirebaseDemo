@@ -15,11 +15,6 @@ import {
 import Home from './src/screens/Home';
 import SplashScreen from 'react-native-splash-screen';
 import { getMyStringValue, setStringValue } from './src/components/AsyncStorage';
-import WebViewComponent from './src/components/WebViewComponent';
-import Products from './src/screens/Products';
-import Firebase from '@react-native-firebase/app';
-import { Provider } from 'react-redux';
-import { store } from './src/redux/store';
 
 const Stack = createStackNavigator();
 
@@ -67,26 +62,14 @@ export default class App extends React.Component {
         </ImageBackground>
       </>
       :
-      <Provider store={store}>
-        <NavigationContainer>
-          <Stack.Navigator initialRouteName={this.state.isLoggedIn ? "Products" : "Home"}>
-            <Stack.Screen
-              name="Home"
-              component={Home}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="Products"
-              component={Products}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="WebViewComponent"
-              component={WebViewComponent}
-              options={{ headerShown: false }}
-            />
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName={this.state.isLoggedIn ? "Products" : "Home"}>
+          <Stack.Screen
+            name="Home"
+            component={Home}
+            options={{ headerShown: false }}
+          />
 
-          </Stack.Navigator>
-        </NavigationContainer>
-      </Provider>
+        </Stack.Navigator>
+      </NavigationContainer>
 }
