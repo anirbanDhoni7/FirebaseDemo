@@ -12,9 +12,11 @@ import {
 import CustomButton from '../../components/CustomButton';
 import loginStyles, { appTheme } from './Styles';
 import TouchID from 'react-native-touch-id';
+import ReactNativeBiometrics, { BiometryTypes } from 'react-native-biometrics';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const Login = props => {
-  const [biometryType, setBiometryType] = useState('');
+  const [authenticated, setAuthenticated] = useState(false);
   const optionalConfigObject = {
     title: 'RNAuthentication',
     imageColor: '#B69377', // Android
@@ -26,34 +28,29 @@ const Login = props => {
     unifiedErrors: false, // use unified error messages (default false)
     passcodeFallback: true // iOS: allows the device to fall back to using the passcode if faceid or touch is not available. This does not mean that if touchid or faceid fails the first few times, it will revert to a passcode; rather, if the former are not enrolled, then it will use the passcode.
   };
-  const authenticate = () => {
-    TouchID.authenticate('RNAuthentication requires your fingerprint for verification ', optionalConfigObject)
-      .then((success) => {
-        if (success) {
-          alert("Authenticated");
-        }
+  const authenticate = async () => {
 
-      })
-      .catch((error) => {
+    const rnBiometrics = new ReactNativeBiometrics();
+    let resultObject = await rnBiometrics.simplePrompt({ promptMessage: 'Confirm Fingerprint' });
+    if (resultObject?.success) {
+      setAuthenticated(true);
+    }
+    // TouchID.authenticate('RNAuthentication requires your fingerprint for verification ', optionalConfigObject)
+    //   .then((success) => {
+    //     if (success) {
+    //       alert("Authenticated");
+    //     }
 
-      });
+    //   })
+    //   .catch((error) => {
+
+    //   });
   };
   useEffect(() => {
-    TouchID.isSupported(optionalConfigObject)
-      .then(biometryType => {
-
-        // Success code
-        if (biometryType === 'FaceID') {
-          setBiometryType('FaceID');
-        } else {
-          setBiometryType('TouchID');
-        }
-      })
-      .catch(error => {
-        // Failure code
-        console.log(error);
-      });
-  }, []);
+    setTimeout(() => {
+      setAuthenticated(false);
+    }, 3000);
+  }, [authenticated]);
   return (
     <SafeAreaView style={loginStyles.container}>
       <StatusBar backgroundColor={appTheme} />
@@ -74,14 +71,28 @@ const Login = props => {
         <View style={loginStyles.gap} />
         <View style={loginStyles.gap} />
         <View style={loginStyles.gap} />
-        <CustomButton
-          text={"AUTHENTICATE"}
-          color={appTheme}
-          fontSize={15}
-          style={{ width: '100%' }}
-          borderRadius={10}
-          onPress={authenticate}
-        />
+        {
+          authenticated ?
+            <View
+              style={loginStyles.authenticationSuccessfulContainerStyle}
+            >
+              <Ionicons
+                name='checkmark-circle'
+                color={'#008000'}
+                size={50}
+              />
+              <Text style={loginStyles.authSuccessfulTextStyle}>Successfully Authenticated</Text>
+            </View>
+            : 
+            <CustomButton
+              text={"AUTHENTICATE"}
+              color={appTheme}
+              fontSize={15}
+              style={{ width: '100%' }}
+              borderRadius={10}
+              onPress={authenticate}
+            />
+        }
         <View style={loginStyles.gap} />
         <View style={loginStyles.gap} />
         <View style={loginStyles.gap} />
